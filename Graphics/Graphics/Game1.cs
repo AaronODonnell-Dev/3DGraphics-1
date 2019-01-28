@@ -15,10 +15,11 @@ namespace Graphics
         DebugEngine debug;
         ImmediateShapeDrawer shapeDrawer;
 
-        List<SimpleModel> gameObjects = new List<SimpleModel>();
+        List<GameObject3D> gameObjects = new List<GameObject3D>();
         Camera mainCamera;
 
         SpriteBatch spriteBatch;
+        QuadTree quadTree;
         SpriteFont sfont;
 
         OcclusionQuery occQuery;
@@ -56,6 +57,8 @@ namespace Graphics
             mainCamera = new Camera("cam", new Vector3(0, 5, 10), new Vector3(0, 0, -1));
             mainCamera.Initialize();
 
+            quadTree = new QuadTree(10, Vector2.Zero, 5);
+
             base.Initialize();
         }
 
@@ -86,7 +89,10 @@ namespace Graphics
                 Exit();
             }
 
+
             gameObjects.ForEach(go => go.Update());
+
+            quadTree.Process(mainCamera.Frustum, ref gameObjects);
 
             base.Update(gameTime);
         }
@@ -95,21 +101,23 @@ namespace Graphics
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            debug.Draw(mainCamera);
+
             totalTime = 0;
 
             time.Reset();
 
-            foreach (var item in gameObjects)
-            {
-                if(FrustumContains(item))
-                {
-                    if(!IsOccluded(item))
-                    {
-                        item.Draw(mainCamera);
-                        objectsDrawn++;
-                    }
-                }
-            }
+            //foreach (var item in gameObjects)
+            //{
+            //    if(FrustumContains(item))
+            //    {
+            //        if(!IsOccluded(item))
+            //        {
+            //            item.Draw(mainCamera);
+            //            objectsDrawn++;
+            //        }
+            //    }
+            //}
 
             spriteBatch.Begin();
 
@@ -131,8 +139,9 @@ namespace Graphics
         private void AddModel(SimpleModel simpleModel)
         {
             simpleModel.Initialize();
-            simpleModel.LoadContent();
-            gameObjects.Add(simpleModel);
+            //simpleModel.LoadContent();
+            //gameObjects.Add(simpleModel);
+            quadTree.AddObject(simpleModel);
         }
 
         private bool FrustumContains(SimpleModel simpleModel)
