@@ -53,9 +53,9 @@ namespace Graphics
 
         public void AddObject(GameObject3D newObject)
         {
-            if(Nodes.Count == 0)
+            if (Nodes.Count == 0)
             {
-                if(Objects.Count >= MaxObjects)
+                if (Objects.Count < MaxObjects)
                 {
                     Objects.Add(newObject);
                 }
@@ -63,10 +63,8 @@ namespace Graphics
                 {
                     SubDivide();
 
-                    foreach (GameObject3D gameObject in Objects)
-                    {
-                        Distribute(gameObject);
-                    }
+                    foreach (GameObject3D go in Objects)
+                        Distribute(go);
 
                     Objects.Clear();
                 }
@@ -82,27 +80,25 @@ namespace Graphics
             Vector3 position = newObject.World.Translation;
             foreach (QuadTree node in Nodes)
             {
-                if(node.Bounds.Contains(position) != ContainmentType.Disjoint)
+                if (node.Bounds.Contains(position) != ContainmentType.Disjoint)
                 {
                     node.AddObject(newObject);
                     break;
                 }
             }
         }
-        
-        public void Process(BoundingFrustum frustum, ref List<GameObject3D> passedObjects)
-        {
-            if(passedObjects == null)
-            {
-                passedObjects = new List<GameObject3D>();
-            }
 
-            if(frustum.Contains(Bounds) != ContainmentType.Disjoint)
+        public void Process(BoundingFrustum frustum, ref List<GameObject3D> foundObjects)
+        {
+            if (foundObjects == null)
+                foundObjects = new List<GameObject3D>();
+
+            if (frustum.Contains(Bounds) != ContainmentType.Disjoint)
             {
-                passedObjects.AddRange(Objects);
+                foundObjects.AddRange(Objects);
 
                 foreach (QuadTree node in Nodes)
-                    Process(frustum, ref passedObjects);
+                    node.Process(frustum, ref foundObjects);
             }
         }
 
